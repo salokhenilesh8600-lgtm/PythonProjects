@@ -1,31 +1,59 @@
 import streamlit as st
-import pandas as pd
-from database import add_transaction, get_transactions
+from streamlit_option_menu import option_menu
+
+from database import add_transaction
 from expense_manager import get_dataframe
 from ai_modules.budget_predictor import predict_spending
 from ai_modules.fraud_detector import detect_fraud
 from ai_modules.finance_chatbot import chat
 
-st.title("AI Personal Finance Tracker")
+st.set_page_config(page_title="AI Finance Tracker", layout="wide")
 
-menu = ["Add Expense","Dashboard","AI Prediction","Fraud Detection","AI Chat"]
+st.title("💰 AI Personal Finance Tracker")
 
-choice = st.sidebar.selectbox("Menu", menu)
+# Top Navigation Menu
+selected = option_menu(
+    menu_title=None,
+    options=[
+        "Add Expense",
+        "Dashboard",
+        "AI Prediction",
+        "Fraud Detection",
+        "AI Chat"
+    ],
+    icons=[
+        "plus-circle",
+        "bar-chart",
+        "graph-up",
+        "shield-exclamation",
+        "chat-dots"
+    ],
+    orientation="horizontal"
+)
 
-if choice == "Add Expense":
+# -----------------------------
+# Add Expense
+# -----------------------------
+if selected == "Add Expense":
 
-    t = st.selectbox("Type",["income","expense"])
+    st.subheader("Add Transaction")
+
+    t = st.selectbox("Type", ["income", "expense"])
     amount = st.number_input("Amount")
     cat = st.text_input("Category")
     desc = st.text_input("Description")
     date = st.text_input("Date")
 
-    if st.button("Add"):
-        add_transaction(t,amount,cat,desc,date)
+    if st.button("Add Transaction"):
+        add_transaction(t, amount, cat, desc, date)
         st.success("Transaction Added")
 
+# -----------------------------
+# Dashboard
+# -----------------------------
+elif selected == "Dashboard":
 
-elif choice == "Dashboard":
+    st.subheader("Finance Dashboard")
 
     df = get_dataframe()
 
@@ -33,17 +61,25 @@ elif choice == "Dashboard":
 
     st.bar_chart(df.groupby("category")["amount"].sum())
 
+# -----------------------------
+# AI Prediction
+# -----------------------------
+elif selected == "AI Prediction":
 
-elif choice == "AI Prediction":
+    st.subheader("AI Spending Prediction")
 
     df = get_dataframe()
 
     pred = predict_spending(df)
 
-    st.write("Predicted Next Month Spending:", pred)
+    st.success(f"Predicted Next Month Spending: ₹{pred}")
 
+# -----------------------------
+# Fraud Detection
+# -----------------------------
+elif selected == "Fraud Detection":
 
-elif choice == "Fraud Detection":
+    st.subheader("Fraud Detection")
 
     df = get_dataframe()
 
@@ -53,13 +89,17 @@ elif choice == "Fraud Detection":
 
     st.dataframe(fraud)
 
+# -----------------------------
+# AI Chat
+# -----------------------------
+elif selected == "AI Chat":
 
-elif choice == "AI Chat":
+    st.subheader("Finance AI Assistant")
 
     df = get_dataframe()
 
-    q = st.text_input("Ask AI")
+    q = st.text_input("Ask a question")
 
-    if st.button("Ask"):
-        ans = chat(df,q)
-        st.write(ans)
+    if st.button("Ask AI"):
+        answer = chat(df, q)
+        st.write(answer)
